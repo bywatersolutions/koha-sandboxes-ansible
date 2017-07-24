@@ -1,0 +1,4 @@
+export MAILTO="{{ sandbox_mailto }}"
+export KOHA_CONTRIB="/var/lib/koha/{{ sandbox.name }}/kohaclone"
+export KOHA_CONF="/etc/koha/sites/{{ sandbox.name }}/koha-conf.xml"
+export PERL5LIB="/var/lib/koha/{{ sandbox.name }}/kohaclone"

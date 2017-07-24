@@ -1,0 +1,5 @@
+.gitignore
+sandbox
+sandbox.pl
+koha-tmpl/intranet-tmpl/prog/fr-FR/*
+koha-tmpl/opac-tmpl/prog/fr-FR/*

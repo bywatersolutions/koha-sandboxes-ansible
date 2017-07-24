@@ -1,0 +1,76 @@
+# file: roles/kohasandbox/tasks/main.yml
+---
+  - name: Install packages needed for ansible mysql access
+    apt:
+      name: python-mysqldb
+      state: present
+
+  - name: Install packages needed for sandbox.pl
+    apt:
+      name: libclass-methodmaker-perl
+      state: present
+
+  - name: Install unpackaged Perl deps needed for Elastic
+    cpanm:
+      name: Catmandu::Store::ElasticSearch
+
+  - name: Checkout out Koha contrib for sandbox scripts
+    git:
+      repo: git://git.koha-community.org/contrib/global.git
+      dest: /home/vagrant/koha-contrib
+      version: master
+      force: true
+    become: yes
+    become_user: vagrant
+
+  - name: Remove use of sudo from scripts, not needed and a security risk
+    replace:
+      path: "{{ cronfile }}"
+      regexp: "sudo "
+      replace: ""
+      backup: yes
+    with_items:
+      - /home/vagrant/koha-contrib/sandbox/cron/sandbox.cron
+      - /home/vagrant/koha-contrib/sandbox/cron/sandbox_signoff.cron
+    loop_control:
+      loop_var: cronfile
+
+  - name: Create koha sandboxes
+    include: sandbox.yml sandbox={{ item }}
+    with_items: "{{ sandboxes }}"
+    become: yes
+
+  - cron:
+      name: "Update master every night at 1:15 AM"
+      minute: 15
+      hour: 1
+      job: "cd /home/vagrant/kohaclone;git fetch;git checkout master > /dev/null 2>&1;git rebase origin/master > /dev/null"
+      user: vagrant
+  - cron:
+      name: "Update the contrib repository at 2:15 AM"
+      minute: 15
+      hour: 2
+      job: "cd /home/vagrant/koha-contrib;git fetch;git checkout master > /dev/null 2>&1 ;git rebase origin/master > /dev/null"
+      user: vagrant
+  - cron:
+      name: "Update git-bz"
+      minute: 15
+      hour: 1
+      job: "cd /home/vagrant/gitbz;git checkout fishsoup > /dev/null 2>&1;git pull --rebase > /dev/null"
+      user: vagrant
+
+  - name: Set up sandbox states database user
+    mysql_user:
+      name: sandboxes
+      password: password
+      priv: 'sandboxes_stats.*:ALL'
+      state: present
+  - name: Copy over the sql file to create the sandbox stats db schema
+    template:
+      src: ../templates/sandboxes_stats.sql
+      dest: /home/vagrant/sandboxes_stats.sql
+  - name: Create the sandbox stats database
+    mysql_db:
+      name: sandboxes_stats
+      state: import
+      target: /home/vagrant/sandboxes_stats.sql

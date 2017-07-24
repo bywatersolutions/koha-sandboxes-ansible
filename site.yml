@@ -1,12 +1,12 @@
 ---
 # This is the top-level playbook for deploying Koha
 - hosts: all
-  remote_user: vagrant
   gather_facts: true
 
   vars_files:
       - vars/defaults.yml
       - vars/user.yml
+      - vars/sandboxes.yml
 
   pre_tasks:
     - name: Update apt cache if needed
@@ -16,8 +16,17 @@
         cache_valid_time: 3600
       become: yes
 
+    - group:
+        name: vagrant
+        state: present
+    - user:
+        name: vagrant
+        shell: /bin/bash
+        groups: vagrant,sudo
+
   roles:
       - kohadevbox
+      - kohasandbox
 
   post_tasks:
     - name: Init mlocate database

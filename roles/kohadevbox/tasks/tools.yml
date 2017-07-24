@@ -16,6 +16,7 @@
       - perltidy
       - pmtools
       - memcached
+      - locate
 
   - name: Tools | Install extra tools
     apt:

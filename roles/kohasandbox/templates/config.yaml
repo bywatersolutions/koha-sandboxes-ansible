@@ -1,0 +1,11 @@
+database:
+  driver: mysql
+  name: sandboxes_stats
+  port: 3306
+  host: localhost
+  user: sandboxes
+  passwd: password
+sandbox:
+  tempfile: {{ sandbox.name }}_tmp
+signoff:
+  tempfile: {{ sandbox.name }}_signoff

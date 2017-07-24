@@ -1,0 +1,17 @@
+# file: roles/sandbox/meta/main.yml
+---
+galaxy_info:
+  author: Kyle Hall
+  license: GPLv3
+  min_ansible_version: 1.6
+  platforms:
+    - name: Ubuntu
+      versions:
+        - trusty
+    - name: Debian
+      versions:
+        - wheezy
+        - jessie
+  categories:
+     - web
+dependencies: []

@@ -1,0 +1,172 @@
+# file: roles/kohasandbox/tasks/main.yml
+---
+  - name: Get list of Koha instances on this server
+    command: koha-list
+    become: true
+    become_user: root
+    register: koha_instances
+
+  - name: Create koha package instance
+    command: koha-create --create-db --marcflavor "{{ sandbox.marcflavor }}" "{{ sandbox.name }}"
+    become: true
+    become_user: root
+    register: koha_create_output
+    when: sandbox.name not in koha_instances.stdout_lines
+
+  - name: Debug - Koha Create Output
+    debug:
+      var: koha_create_output
+
+  - git:
+      repo: /home/vagrant/kohaclone
+      dest: /var/lib/koha/{{ sandbox.name }}/kohaclone
+      clone: yes
+      reference: /home/vagrant/kohaclone/
+      remote: vagrant
+      update: yes
+    become: true
+    become_user: "{{ sandbox.name }}-koha"
+
+  - name: Gitify Koha sandbox instances
+    command: git remote add origin git://git.koha-community.org/koha.git
+    args:
+      chdir: "/var/lib/koha/{{ sandbox.name }}/kohaclone"
+    ignore_errors: yes
+    become: true
+    become_user: "{{ sandbox.name }}-koha"
+
+  - name: Gitify Koha sandbox instances
+    command: /home/vagrant/gitify/koha-gitify "{{ sandbox.name }}"  "/var/lib/koha/{{ sandbox.name }}/kohaclone/"
+    become: true
+    become_user: root
+    register: koha_create_output
+
+  # Replace Apache permission for kohadev/vagrant with /var/lib/koha
+  - replace:
+      path: /etc/koha/apache-shared-intranet-git.conf
+      replace: '/var/lib/koha'
+      regexp: '/home/vagrant/kohaclone'
+    notify: restart apache
+  - replace:
+      path: /etc/koha/apache-shared-opac-git.conf
+      replace: '/var/lib/koha'
+      regexp: '/home/vagrant/kohaclone'
+    notify: restart apache
+
+  # Create sandbox directory inside kohaclone
+  - file:
+      path: "{{ path }}"
+      state: directory
+      mode: 0755
+      owner: "{{ sandbox.name }}-koha"
+      group: "{{ sandbox.name }}-koha"
+    with_items:
+      - /var/lib/koha/{{ sandbox.name }}/kohaclone/sandbox
+      - /var/lib/koha/{{ sandbox.name }}/kohaclone/sandbox/templates
+      - /var/lib/koha/{{ sandbox.name }}/kohaclone/sandbox/sql
+      - /var/lib/koha/{{ sandbox.name }}/kohaclone/sandbox/cron
+      # sandbox.pl chokes if this dir doesn't exist
+      - /var/lib/koha/{{ sandbox.name }}/kohaclone/sandbox/misc/translator/po
+    loop_control:
+      loop_var: path
+
+  # Symlink the sandbox files into each sandboxc instance
+  - file:
+      src: "/home/vagrant/koha-contrib/sandbox/sandbox.pl"
+      dest: "/var/lib/koha/{{ sandbox.name }}/kohaclone/sandbox.pl"
+      state: link
+      mode: 0755
+      owner: "{{ sandbox.name }}-koha"
+      group: "{{ sandbox.name }}-koha"
+  - file:
+      src: "/home/vagrant/koha-contrib/sandbox/{{ file }}"
+      dest: "/var/lib/koha/{{ sandbox.name }}/kohaclone/sandbox/{{ file }}"
+      state: link
+      mode: 0755
+      owner: "{{ sandbox.name }}-koha"
+      group: "{{ sandbox.name }}-koha"
+      force: true
+    with_items:
+      - templates/sandbox.tt
+      - sql/sandbox1.sql.gz
+      - sql/sandbox2.sql.gz
+      - cron/sandbox.cron
+      - cron/sandbox_signoff.cron
+    loop_control:
+      loop_var: file
+
+  # Symlink the vagrant .gitconfig for all the sandboxes
+  - file:
+      src: "/home/vagrant/.gitconfig"
+      dest: "/var/lib/koha/{{ sandbox.name }}/.gitconfig"
+      state: link
+      mode: 0755
+      owner: "{{ sandbox.name }}-koha"
+      group: "{{ sandbox.name }}-koha"
+      force: true
+
+  - name: Install gitignore file so the sandbox files don't get blown away
+    template:
+      src: ../templates/gitignore
+      dest: "/var/lib/koha/{{ sandbox.name }}/kohaclone/.gitignore"
+      owner: "{{ sandbox.name }}-koha"
+      group: "{{ sandbox.name }}-koha"
+
+  - name: Install the config file the sandbox script uses for db access and filenames
+    template:
+      src: ../templates/config.yaml
+      dest: "/var/lib/koha/{{ sandbox.name }}/kohaclone/sandbox/config.yaml"
+      owner: "{{ sandbox.name }}-koha"
+      group: "{{ sandbox.name }}-koha"
+
+  - name: Install a bash profile with the same vars as the crontab, useful for testing
+    template:
+      src: ../templates/profile
+      dest: "/var/lib/koha/{{ sandbox.name }}/.profile"
+      owner: "{{ sandbox.name }}-koha"
+      group: "{{ sandbox.name }}-koha"
+
+  - name: Install a bash profile with the same vars as the crontab, useful for testing
+    template:
+      src: ../templates/profile
+      dest: "/var/lib/koha/{{ sandbox.name }}/.profile"
+      owner: "{{ sandbox.name }}-koha"
+      group: "{{ sandbox.name }}-koha"
+
+  # Set up cronjobs
+  - cronvar:
+      name: MAILTO
+      value: "{{ sandbox_mailto }}"
+      user: "{{ sandbox.name }}-koha"
+  - cronvar:
+      name: KOHA_CONTRIB
+      value: "/var/lib/koha/{{ sandbox.name }}/kohaclone"
+      user: "{{ sandbox.name }}-koha"
+  - cronvar:
+      name: KOHA_CONF
+      value: "/etc/koha/sites/{{ sandbox.name }}/koha-conf.xml"
+      user: "{{ sandbox.name }}-koha"
+  - cronvar:
+      name: PERL5LIB
+      value: "/var/lib/koha/{{ sandbox.name }}/kohaclone"
+      user: "{{ sandbox.name }}-koha"
+  - cron:
+      name: "Run fast indexer"
+      job: "/var/lib/koha/{{ sandbox.name }}/kohaclone/misc/migration_tools/rebuild_zebra.pl -a -b -z -x > /dev/null 2>&1"
+      user: "{{ sandbox.name }}-koha"
+  - cron:
+      name: "Every minute, check if there is a sandbox to install"
+      job: "cd /var/lib/koha/{{ sandbox.name }}/kohaclone/sandbox/cron/; ./sandbox.cron -d koha_{{ sandbox.name }}"
+      user: "{{ sandbox.name }}-koha"
+  - cron:
+      name: "Every minute, check if there is a patch to signoff"
+      job: "cd /var/lib/koha/{{ sandbox.name }}/kohaclone/sandbox/cron/; ./sandbox_signoff.cron -u {{ bz_user }} -p {{ bz_password }}"
+      user: "{{ sandbox.name }}-koha"
+
+  - name: insert/update HTML surrounded by custom markers after <body> line
+    blockinfile:
+      path: "/etc/apache2/sites-available/{{ sandbox.name }}.conf"
+      marker: "# {mark} Pass KOHA_CONTRIB environment variable - ANSIBLE MANAGED BLOCK"
+      insertafter: "<VirtualHost"
+      content: SetEnv KOHA_CONTRIB "/var/lib/koha/{{ sandbox.name }}/kohaclone"
+    notify: restart apache

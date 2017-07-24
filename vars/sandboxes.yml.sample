@@ -1,0 +1,10 @@
+---
+- sandbox_mailto: sandboxes@yourdomain.com
+  sandboxes:
+  - name: sandbox1
+    description: SandBox1
+    marcflavor: marc21
+
+  - name: sandbox2
+    description: SandBox2
+    marcflavor: marc21

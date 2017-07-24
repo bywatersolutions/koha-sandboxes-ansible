@@ -1,2 +1,4 @@
 .vagrant
 vars/user.yml
+vars/sandboxes.yml
+site.retry
