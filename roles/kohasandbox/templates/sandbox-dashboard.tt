@@ -1,3 +1,4 @@
+[%- USE String -%]
 <html>
     <head>
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
@@ -12,7 +13,7 @@
 
             <div class="collapse navbar-collapse">
                 <ul class="navbar-nav mr-auto">
-                    <li class="nav-item"><a class="nav-link" href="https://bywatersolutions.com">ByWater Solutions</a></li>
+                    <li class="nav-item"><a class="nav-link" href="http://bywatersolutions.com">ByWater Solutions</a></li>
                     <li class="nav-item"><a class="nav-link" href="https://koha-community.org">Koha Community</a></li>
                     <li class="nav-item"><a class="nav-link" href="https://wiki.koha-community.org/wiki/Sandboxes">Sandbox Wiki</a></li>
                 </ul>
@@ -56,7 +57,7 @@
                                         [% FOREACH s IN sandboxes %]
                                             <tr>
                                                 <td>[% s.name %]</td>
-                                                <td>[% s.last_commit.message %]</td>
+                                                <td>[% String.new( s.last_commit.message ).split("\n").first %]</td>
                                                 <td>[% s.last_usage.date %]</td>
                                                 <td>
                                                     <a target="_blank" class="btn btn-secondary" href="http://staff.[% s.name %].sandbox.bywatersolutions.com/cgi-bin/koha/sandbox.pl" class="card-link">Configure</a>
@@ -69,6 +70,10 @@
                         </div>
 
                         <div class="tab-pane" id="needs_signoff" role="tabpanel">
+                            <p>
+                                The full list of bugs needing signff is availble on the <a target="_blank" href="http://bit.ly/2vfTyf8">Koha Bugzilla</a>
+                            </p>
+
                             <table class="table table-striped">
                                 <thead>
                                     <tr>
