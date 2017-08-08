@@ -74,3 +74,29 @@
       name: sandboxes_stats
       state: import
       target: /home/vagrant/sandboxes_stats.sql
+
+  - name: Install the config file the sandbox script uses for db access and filenames
+    template:
+      src: ../templates/config.yaml
+      dest: "/home/vagrant/config.yaml"
+      owner: "vagrant"
+      group: "vagrant"
+
+  - name: Install the sandbox dashboard cgi script
+    template:
+      src: ../templates/sandbox-dashboard.pl
+      dest: /usr/lib/cgi-bin/sandbox-dashboard.pl
+  - name: Install the sandbox dashboard cgi script template
+    template:
+      src: ../templates/sandbox-dashboard.tt
+      dest: /usr/lib/cgi-bin/sandbox-dashboard.tt
+  - name: Install the sandbox dashboard apache config
+    template:
+      src: ../templates/000-sandbox-dashboard.conf
+      dest: /etc/apache2/sites-available/000-sandbox-dashboard.conf
+    notify: restart apache
+  - file:
+      src: /etc/apache2/sites-available/000-sandbox-dashboard.conf
+      dest: /etc/apache2/sites-enabled/000-sandbox-dashboard.conf
+      state: link
+    notify: restart apache

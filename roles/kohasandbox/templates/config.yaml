@@ -5,7 +5,9 @@ database:
   host: localhost
   user: sandboxes
   passwd: password
+{% if sandbox is defined %}
 sandbox:
   tempfile: {{ sandbox.name }}_tmp
 signoff:
   tempfile: {{ sandbox.name }}_signoff
+{% endif %}

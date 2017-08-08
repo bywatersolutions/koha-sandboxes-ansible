@@ -1,0 +1,128 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+        <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js" integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>]
+    </head>
+
+    <body>
+        <nav class="navbar navbar-toggleable-md navbar-inverse fixed-top bg-inverse">
+            <a class="navbar-brand" href="#">Sandbox Dashboard</a>
+
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item"><a class="nav-link" href="https://bywatersolutions.com">ByWater Solutions</a></li>
+                    <li class="nav-item"><a class="nav-link" href="https://koha-community.org">Koha Community</a></li>
+                    <li class="nav-item"><a class="nav-link" href="https://wiki.koha-community.org/wiki/Sandboxes">Sandbox Wiki</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <div class="jumbotron">
+            <div class="container">
+                <h1 class="display-4">Hello!</h1>
+                <p>Welcome to our Koha sandbox server! Here you will find our Koha 'sandboxes' where you can apply and test patches for the Koha community!</p>
+            </div>
+        </div>
+
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" data-toggle="tab" href="#sandboxes" role="tab">Sandboxes</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-toggle="tab" href="#needs_signoff" role="tab">Needs Signoff</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-toggle="tab" href="#needs_qa" role="tab">Needs QA</a>
+            </li>
+        </ul>
+
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-12">
+                    <div class="tab-content">
+                        <div class="tab-pane active" id="sandboxes" role="tabpanel">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Current last patch applied</th>
+                                        <th>Last patch application date</th>
+                                        <th>Links</th>
+                                    </tr>
+
+                                    <tbody>
+                                        [% FOREACH s IN sandboxes %]
+                                            <tr>
+                                                <td>[% s.name %]</td>
+                                                <td>[% s.last_commit.message %]</td>
+                                                <td>[% s.last_usage.date %]</td>
+                                                <td>
+                                                    <a target="_blank" class="btn btn-secondary" href="http://staff.[% s.name %].sandbox.bywatersolutions.com/cgi-bin/koha/sandbox.pl" class="card-link">Configure</a>
+                                                    <a target="_blank" class="btn btn-secondary" href="http://staff.[% s.name %].sandbox.bywatersolutions.com/" class="card-link">Staff</a>
+                                                    <a target="_blank" class="btn btn-secondary" href="http://catalog.[% s.name %].sandbox.bywatersolutions.com/" class="card-link">Catalog</a>
+                                                </td>
+                                        [% END %]
+                                    </tbody>
+                            </table>
+                        </div>
+
+                        <div class="tab-pane" id="needs_signoff" role="tabpanel">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Bug #</th>
+                                        <th>Description</th>
+                                        <th>Links</th>
+                                    </tr>
+                                <thead>
+
+                                <tbody>
+                                    [% FOREACH ns IN needs_signoff.bugs %]
+                                        <tr>
+                                            <td>[% ns.id %]</td>
+                                            <td>[% ns.summary %]</td>
+                                            <td>
+                                                <a target="_blank" class="btn btn-secondary" href="https://bugs.koha-community.org/bugzilla3/show_bug.cgi?id=[% ns.id %]" class="card-link">Go to Bugzilla</a>
+                                            </td>
+                                    [% END %]
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="tab-pane" id="needs_qa" role="tabpanel">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Bug #</th>
+                                        <th>Description</th>
+                                        <th>Links</th>
+                                    </tr>
+                                <thead>
+
+                                <tbody>
+                                    [% FOREACH so IN signed_off.bugs %]
+                                        <tr>
+                                            <td>[% so.id %]</td>
+                                            <td>[% so.summary %]</td>
+                                            <td>
+                                                <a target="_blank" class="btn btn-secondary" href="https://bugs.koha-community.org/bugzilla3/show_bug.cgi?id=[% so.id %]" class="card-link">Go to Bugzilla</a>
+                                            </td>
+                                        </tr>
+                                    [% END %]
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <footer>
+                        <p>&copy; 2017 ByWater Solutions</p>
+                    </footer>
+                </div>
+            </div> <!-- /row -->
+        </div> <!-- /container -->
+    </body>
+</head>
