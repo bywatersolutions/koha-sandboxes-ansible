@@ -26,6 +26,7 @@
       update: yes
     become: true
     become_user: "{{ sandbox.name }}-koha"
+    ignore_errors: yes
 
   - name: Gitify Koha sandbox instances
     command: git remote add origin git://git.koha-community.org/koha.git
@@ -170,3 +171,31 @@
       insertafter: "<VirtualHost"
       content: SetEnv KOHA_CONTRIB "/var/lib/koha/{{ sandbox.name }}/kohaclone"
     notify: restart apache
+
+  # Set up .my.cnf
+  - name: Get db user name
+    command: 'xmlstarlet sel -t -v "/yazgfs/config/user" /etc/koha/sites/{{ sandbox.name }}/koha-conf.xml'
+    become: true
+    become_user: root
+    register: db_user
+  - name: Get db password
+    command: 'xmlstarlet sel -t -v "/yazgfs/config/pass" /etc/koha/sites/{{ sandbox.name }}/koha-conf.xml'
+    become: true
+    become_user: root
+    register: db_password
+  - name: Get db host
+    command: 'xmlstarlet sel -t -v "/yazgfs/config/hostname" /etc/koha/sites/{{ sandbox.name }}/koha-conf.xml'
+    become: true
+    become_user: root
+    register: db_host
+  - name: Get db database
+    command: 'xmlstarlet sel -t -v "/yazgfs/config/database" /etc/koha/sites/{{ sandbox.name }}/koha-conf.xml'
+    become: true
+    become_user: root
+    register: db_database
+  - name: Install .my.cnf
+    template:
+      src: ../templates/my.cnf
+      dest: "/var/lib/koha/{{ sandbox.name }}/.my.cnf"
+      owner: "{{ sandbox.name }}-koha"
+      group: "{{ sandbox.name }}-koha"
