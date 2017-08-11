@@ -136,6 +136,10 @@
 
   # Set up cronjobs
   - cronvar:
+      name: PATH
+      value: "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      user: "{{ sandbox.name }}-koha"
+  - cronvar:
       name: MAILTO
       value: "{{ sandbox_mailto }}"
       user: "{{ sandbox.name }}-koha"

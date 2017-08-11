@@ -44,6 +44,9 @@
                 <div class="col-12">
                     <div class="tab-content">
                         <div class="tab-pane active" id="sandboxes" role="tabpanel">
+                            <p style="text-align: center;">
+                                <strong>Note:</strong> The username and password for all sandboxes is <em>test</em>
+                            </p>
                             <table class="table table-striped">
                                 <thead>
                                     <tr>
